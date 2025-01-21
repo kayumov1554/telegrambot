@@ -170,8 +170,8 @@ bot.on("callback_query", async (callbackQuery) => {
       );
       await bot.deleteMessage(chatId, callbackQuery.message.message_id);
     } else {
-      bot.sendMessage(chatId, "❌ Siz hali kanalga obuna bo'lmagansiz!");
       if (text === "/start") return;
+      bot.sendMessage(chatId, "❌ Siz hali kanalga obuna bo'lmagansiz!");
     }
   }
 });
