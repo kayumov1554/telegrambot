@@ -4,7 +4,7 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const token = "7297351320:AAEThpSy0o3-agW3HG6KKziCqxuKOJsnzIY"; // Tokenni yangilash
+const token = "7622592986:AAFMo7pFWKh0U1__wbkk9OJAWHdnGFDbAGM"; // Tokenni yangilash
 const bot = new TelegramBot(token, { polling: true });
 
 const channel = "@androidapk_uzbot"; // Kanal username
@@ -171,6 +171,7 @@ bot.on("callback_query", async (callbackQuery) => {
       await bot.deleteMessage(chatId, callbackQuery.message.message_id);
     } else {
       bot.sendMessage(chatId, "❌ Siz hali kanalga obuna bo'lmagansiz!");
+      if (text === "/start") return;
     }
   }
 });
