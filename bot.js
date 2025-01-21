@@ -4,51 +4,115 @@ const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const token = "7297351320:AAEThpSy0o3-agW3HG6KKziCqxuKOJsnzIY";
+const token = "7297351320:AAEThpSy0o3-agW3HG6KKziCqxuKOJsnzIY"; // Tokenni yangilash
 const bot = new TelegramBot(token, { polling: true });
 
-const groupUsername = "@foydalanuvchilaruchuntxt";
-
+const channel = "@androidapk_uzbot"; // Kanal username
 const files = {
-  112: "https://t.me/fayllarimkayumov/4",
+  112: "https://t.me/fayllarimkayumov/6",
 };
 
-bot.onText(/\/start/, (msg) => {
+// Kanalga obuna holatini tekshirish funksiyasi
+async function isUserSubscribed(userId) {
+  try {
+    const chatMember = await bot.getChatMember(channel, userId);
+    return (
+      chatMember.status === "member" ||
+      chatMember.status === "administrator" ||
+      chatMember.status === "creator"
+    );
+  } catch (error) {
+    console.error("Obuna tekshirishda xatolik:", error);
+    return false;
+  }
+}
+
+// Kanal obunasini tekshirishni har doim ishlovchi funksiyaga qo‘shish
+async function ensureSubscription(chatId, userId) {
+  const subscribed = await isUserSubscribed(userId);
+  if (!subscribed) {
+    await bot.sendMessage(
+      chatId,
+      `❌ Siz hali kanalimizga obuna bo'lmagansiz. Iltimos, quyidagi tugmani bosing va obuna bo'ling:`,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              {
+                text: "Kanalga obuna bo'lish",
+                url: `https://t.me/${channel.slice(1)}`,
+              },
+              {
+                text: "Tekshirish",
+                callback_data: "check_subscription",
+              },
+            ],
+          ],
+        },
+      }
+    );
+    return false;
+  }
+  return true;
+}
+
+// /start komandasi
+bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.from.id;
   const userName = msg.from.first_name || "Dost";
+
+  // Obuna holatini tekshirish
+  const subscribed = await ensureSubscription(chatId, userId);
+  if (!subscribed) return;
+
+  // Obuna bo'lgandan keyin xush kelibsiz xabari
+  const keyboard = {
+    inline_keyboard: [
+      [
+        {
+          text: "Bums",
+          url: "https://t.me/bums/app?startapp=ref_xvNLpaOO", // Referal link
+        },
+      ],
+      [
+        {
+          text: "Android apk",
+          url: `https://t.me/${channel.slice(1)}`, // Kanalga obuna bo'lish
+        },
+      ],
+      [
+        {
+          text: "Tekshirish✔",
+          callback_data: "check_subscription", // Tekshirish tugmasi
+        },
+      ],
+    ],
+  };
 
   bot.sendMessage(
     chatId,
-    `Assalomu alaykum, ${userName}! Botimizga xush kelibsiz! 😊\nRaqam yuboring, sizga mos faylni yuboramiz.👇`,
-    { parse_mode: "HTML" }
+    `Assalomu alaykum, ${userName}! Botimizga xush kelibsiz! 😊\nKanalimizga obuna bo‘lib, botdan to‘liq foydalanishingiz mumkin.`,
+    { reply_markup: keyboard, parse_mode: "HTML" }
   );
-  if (msg.new_chat_members) {
-    const newMembers = msg.new_chat_members; // Yangi foydalanuvchilar ro'yxati
-    newMembers.forEach((member) => {
-      const username = member.username
-        ? `@${member.username}`
-        : member.first_name || "Noma'lum foydalanuvchi";
-      const chatId = msg.chat.id;
-
-      bot
-        .sendMessage(
-          groupUsername,
-          `🎉 Yangi foydalanuvchi qo'shildi: ${username}`,
-          { parse_mode: "HTML" }
-        )
-        .catch((error) => {
-          console.error("Guruhga xabar yuborishda xatolik:", error);
-        });
-    });
-  }
 });
 
-bot.on("message", (msg) => {
+// Har qanday boshqa xabarni boshqarish
+bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
+  const userId = msg.from.id;
+
+  // Obuna holatini tekshirish
+  const subscribed = await ensureSubscription(chatId, userId);
+  if (!subscribed) return;
+
   const text = msg.text;
 
+  if (text === "/help") {
+    bot.sendMessage(chatId, "bot orqali mod fayllar topshingiz mumkun ✅ ");
+    return;
+  }
   if (text === "/start") return;
-  if (text === "/help") return;
 
   const number = parseInt(text);
   if (!isNaN(number) && files[number]) {
@@ -61,47 +125,57 @@ bot.on("message", (msg) => {
       );
     });
   } else if (!text.startsWith("/admin")) {
-    bot.sendMessage(chatId, "siz yuborgan raqamda fayl mavjud emas");
+    bot.sendMessage(chatId, "Siz yuborgan raqamga mos fayl topilmadi.");
   }
 });
 
-bot.onText(/\/admin (.+)/, (msg, match) => {
+// Admin komandasi
+bot.onText(/\/admin (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
-  const userName = msg.from.username || "Noma'lum";
+  const userName = msg.from.username || "Dost";
   const text = match[1];
-  const message = msg.message_id;
+  const groupUsername = "@foydalanuvchilaruchuntxt";
 
   console.log("Foydalanuvchi yubordi:", { userName, text });
 
-  bot
-    .sendMessage(
+  try {
+    await bot.sendMessage(
       groupUsername,
       `📩 <b>Foydalanuvchi:</b> @${userName}\n<b>Xabar:</b> ${text}`,
       { parse_mode: "HTML" }
-    )
-    .then(() => {
-      bot.sendMessage(chatId, "Xabaringiz adminga muvaffaqiyatli yuborildi!");
-    })
-    .catch((error) => {
-      console.error("adminga xabar yuborishda xatolik:", error);
+    );
+    bot.sendMessage(chatId, "Xabaringiz adminga muvaffaqiyatli yuborildi!");
+  } catch (error) {
+    console.error("Adminga xabar yuborishda xatolik:", error);
+    bot.sendMessage(
+      chatId,
+      "Kechirasiz, xabaringizni adminga yuborishda xatolik yuz berdi."
+    );
+  }
+});
+
+// Callback query uchun tekshirish
+bot.on("callback_query", async (callbackQuery) => {
+  const chatId = callbackQuery.message.chat.id;
+  const userId = callbackQuery.from.id;
+  const data = callbackQuery.data;
+
+  if (data === "check_subscription") {
+    const subscribed = await isUserSubscribed(userId);
+
+    if (subscribed) {
       bot.sendMessage(
         chatId,
-        "Kechirasiz, xabaringizni adminga yuborishda xatolik yuz berdi. Iltimos, qayta urinib ko'ring."
+        "Siz kanallarga obuna bo'ldingiz botdan foydalanshingiz mumkun ✅ "
       );
-    });
-});
-
-bot.onText(/\/help/, (msg) => {
-  const chatId = msg.chat.id;
-  bot.sendMessage(
-    chatId,
-    `<b>Assalomu alaykum, 112 raqam CapCut Pro agar szga boshqa fayllar kerak bo'lsa /admin ga habar bering tez orada qo'shamiz: </b>`,
-    {
-      parse_mode: "HTML",
+      await bot.deleteMessage(chatId, callbackQuery.message.message_id);
+    } else {
+      bot.sendMessage(chatId, "❌ Siz hali kanalga obuna bo'lmagansiz!");
     }
-  );
+  }
 });
 
+// Express server sozlamalari
 app.get("/", (req, res) => {
   res.send("Telegram bot ishlamoqda!");
 });
