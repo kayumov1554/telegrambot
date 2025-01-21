@@ -124,7 +124,7 @@ bot.on("message", async (msg) => {
         "Kechirasiz, faylni yuborishda xatolik yuz berdi."
       );
     });
-  } else if (!text.startsWith("/admin")) {
+  } else {
     bot.sendMessage(chatId, "Siz yuborgan raqamga mos fayl topilmadi.");
   }
 });
