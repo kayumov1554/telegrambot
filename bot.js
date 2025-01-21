@@ -159,7 +159,9 @@ bot.on("callback_query", async (callbackQuery) => {
   const chatId = callbackQuery.message.chat.id;
   const userId = callbackQuery.from.id;
   const data = callbackQuery.data;
+  const text = msg.text;
 
+  if (text === "/start") return;
   if (data === "check_subscription") {
     const subscribed = await isUserSubscribed(userId);
 
@@ -170,7 +172,6 @@ bot.on("callback_query", async (callbackQuery) => {
       );
       await bot.deleteMessage(chatId, callbackQuery.message.message_id);
     } else {
-      if (text === "/start") return;
       bot.sendMessage(chatId, "❌ Siz hali kanalga obuna bo'lmagansiz!");
     }
   }
