@@ -1,7 +1,3 @@
-nakrutka_bot.py - Boshlang'ich telegram bot kodi (Python)
-
-Telegram, TikTok, Instagram uchun nakrutka xizmati
-
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes import os import json import requests from dotenv import load_dotenv
 
 .env fayldan o'qish
