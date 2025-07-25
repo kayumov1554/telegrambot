@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AES-256</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    body { font-family: sans-serif; background: #121212; color: #eee; padding: 20px; }
+    input, textarea, button { width: 100%; margin-top: 10px; padding: 10px; border-radius: 10px; border: none; }
+    button { background: #2196f3; color: white; cursor: pointer; }
+    .box { background: #1e1e1e; padding: 20px; border-radius: 12px; margin-top: 20px; }
+    h2 { color: #4caf50; }
+  </style>
+</head>
+<body>
+
+  <h2>AES-256 Shifrlash</h2>
+
+  <div class="box">
+    <label>Matnni kiriting:</label>
+    <textarea id="plainText" rows="4"></textarea>
+
+    <label>Kalit (faqat siz biladigan):</label>
+    <input type="password" id="key" value="HJY%@#56@%YUH67%@#&&676J" />
+
+    <button onclick="encrypt()">🔐 Shifrlash</button>
+
+    <label>Shifrlangan natija:</label>
+    <textarea id="encryptedText" rows="3" readonly></textarea>
+  </div>
+
+  <div class="box">
+    <h2>🔓 Shifrdan chiqarish</h2>
+
+    <label>Shifrlangan matnni kiriting:</label>
+    <textarea id="inputEncrypted" rows="4"></textarea>
+
+    <label>Kalit:</label>
+    <input type="password" id="decryptKey" value="HJY%@#56@%YUH67%@#&&676J" />
+
+    <button onclick="decrypt()">🔓 Ochish</button>
+
+    <label>Asl matn:</label>
+    <textarea id="decryptedText" rows="3" readonly></textarea>
+  </div>
+
+  <script>
+    function encrypt() {
+      const text = document.getElementById("plainText").value;
+      const key = document.getElementById("key").value;
+      const encrypted = CryptoJS.AES.encrypt(text, key).toString();
+      document.getElementById("encryptedText").value = encrypted;
+    }
+
+    function decrypt() {
+      const encryptedText = document.getElementById("inputEncrypted").value;
+      const key = document.getElementById("decryptKey").value;
+      try {
+        const bytes = CryptoJS.AES.decrypt(encryptedText, key);
+        const originalText = bytes.toString(CryptoJS.enc.Utf8);
+        document.getElementById("decryptedText").value = originalText || "❌ Xato kalit yoki noto‘g‘ri ma’lumot.";
+      } catch (e) {
+        document.getElementById("decryptedText").value = "❌ Xatolik!";
+      }
+    }
+  </script>
+
+</body>
+</html>
